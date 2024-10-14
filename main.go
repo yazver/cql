@@ -13,6 +13,7 @@ import (
 const usage = `Usage: cql [options] QUERY
 	If username or password flags is not provided, then the authentication is not used.
 
+	Options:
 	-h --host 		Specifies the host name and port of the machine on which the server is running. Default value is 127.0.0.1:9042.
 	-u --username 	Authenticate as user.
 	-p --password 	Authenticate using password.
@@ -22,7 +23,7 @@ const usage = `Usage: cql [options] QUERY
 	--help 		Show this message.
 
 	Example:
-		cqlsh -h scylla -p 9042 -e "CREATE KEYSPACE some_keyspace WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}"
+		cql -h scylla:9042 "CREATE KEYSPACE some_keyspace WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}"
 	`
 
 func main() {
@@ -52,6 +53,11 @@ func main() {
 	flag.StringVar(&keyspace, "keyspace", "", keyspaceUsage)
 
 	flag.Usage = func() { fmt.Print(usage) }
+
+	if len(os.Args) == 1 {
+		flag.Usage()
+		return
+	}
 
 	flag.Parse()
 
