@@ -29,7 +29,7 @@ func main() {
 	var verbose bool
 	const verboseUsage = "Prints additional information about command running."
 	flag.BoolVar(&verbose, "v", false, verboseUsage)
-	flag.BoolVar(&verbose, "username", false, verboseUsage)
+	flag.BoolVar(&verbose, "verbose", false, verboseUsage)
 
 	var username string
 	const userUsage = "Authenticate as user. May be empty."
@@ -62,7 +62,7 @@ func main() {
 	}
 
 	if verbose {
-		fmt.Printf("Connecting to '%s' as user:'%s' ...\n", host, username)
+		fmt.Printf("Connecting to '%s' as user:'%s'\n", host, username)
 	}
 	conn, err := getSession(host, keyspace, username, password)
 	if err != nil {
@@ -71,11 +71,11 @@ func main() {
 	}
 	defer conn.Close()
 	if verbose {
-		fmt.Printf("Connected to '%s'.", host)
+		fmt.Printf("Connected to '%s'.\n", host)
 	}
 
 	if verbose {
-		fmt.Printf("Executing query \"%s\" ...", query)
+		fmt.Printf("Executing query \"%s\"\n", query)
 	}
 	if err = conn.ExecStmt(query); err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Query failed: %s.\n", err)
