@@ -10,38 +10,44 @@ import (
 	"github.com/scylladb/gocqlx/v2"
 )
 
-const usage = `Usage: cqlsh [options] [host [port]]
+const usage = `Usage: cql [options] QUERY
 	If username or password flags is not provided, then the authentication is not used.
-	The default host is localhost. The default port is 9042.
 
+	-h --host 		Specifies the host name and port of the machine on which the server is running. Default value is 127.0.0.1:9042.
 	-u --username 	Authenticate as user.
 	-p --password 	Authenticate using password.
-	-e --execute 	Execute the statement and quit.
-	-k --keyspace 	Use keyspace.
-	-h --help 		Show this message.
+	-k --keyspace 	Connect to defined keyspace. May be empty.
+	-v --verbose 	Prints additional information about command running.
+
+	--help 		Show this message.
 
 	Example:
-		cqlsh scylla 9042 -e "CREATE KEYSPACE some_keyspace WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}"
+		cqlsh -h scylla -p 9042 -e "CREATE KEYSPACE some_keyspace WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}"
 	`
 
 func main() {
-	const userUsage = "Authenticate as user."
+	var verbose bool
+	const verboseUsage = "Prints additional information about command running."
+	flag.BoolVar(&verbose, "v", false, verboseUsage)
+	flag.BoolVar(&verbose, "username", false, verboseUsage)
+
 	var username string
+	const userUsage = "Authenticate as user. May be empty."
 	flag.StringVar(&username, "u", "", userUsage)
 	flag.StringVar(&username, "username", "", userUsage)
 
-	const passwordUsage = "Authenticate using password."
 	var password string
+	const passwordUsage = "Authenticate using password. May be empty."
 	flag.StringVar(&password, "p", "", passwordUsage)
 	flag.StringVar(&password, "password", "", passwordUsage)
 
-	var query string
-	const executeUsage = "Execute the statement and quit."
-	flag.StringVar(&query, "e", "", executeUsage)
-	flag.StringVar(&query, "execute", "", executeUsage)
+	var host string
+	const hostUsage = "Specifies the host name of the machine on which the server is running. Default value is 127.0.0.1."
+	flag.StringVar(&host, "h", "127.0.0.1", hostUsage)
+	flag.StringVar(&host, "host", "127.0.0.1", hostUsage)
 
 	var keyspace string
-	const keyspaceUsage = "Connect to defined keyspace."
+	const keyspaceUsage = "Connect to defined keyspace. May be empty."
 	flag.StringVar(&keyspace, "k", "", keyspaceUsage)
 	flag.StringVar(&keyspace, "keyspace", "", keyspaceUsage)
 
@@ -49,31 +55,34 @@ func main() {
 
 	flag.Parse()
 
+	query := flag.Arg(0)
 	if query == "" {
-		_, _ = fmt.Fprint(os.Stderr, "Query is empty\n")
+		_, _ = fmt.Fprintln(os.Stderr, "Query is empty.")
 		os.Exit(1)
 	}
 
-	host := flag.Arg(0)
-	if host == "" {
-		host = "localhost"
+	if verbose {
+		fmt.Printf("Connecting to '%s' as user:'%s' ...\n", host, username)
 	}
-
-	port := flag.Arg(1)
-	if port == "" {
-		port = "9042"
-	}
-
 	conn, err := getSession(host, keyspace, username, password)
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "Connection to %s failed): %s.\n", host+":"+port, err)
+		_, _ = fmt.Fprintf(os.Stderr, "Connection to '%s' failed: %s.\n", host, err)
 		os.Exit(1)
 	}
 	defer conn.Close()
+	if verbose {
+		fmt.Printf("Connected to '%s'.", host)
+	}
 
+	if verbose {
+		fmt.Printf("Executing query \"%s\" ...", query)
+	}
 	if err = conn.ExecStmt(query); err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Query failed: %s.\n", err)
 		os.Exit(1)
+	}
+	if verbose {
+		fmt.Println("Query executed.")
 	}
 }
 

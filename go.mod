@@ -1,4 +1,4 @@
-module github.com/yazver/cqlsh
+module github.com/yazver/cql
 
 go 1.23.1
 
