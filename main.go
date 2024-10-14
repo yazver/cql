@@ -62,7 +62,7 @@ func main() {
 	}
 
 	if verbose {
-		fmt.Printf("Connecting to '%s' as user:'%s'\n", host, username)
+		fmt.Printf("Connecting to '%s' and keyspace '%s' as user:'%s'\n", host, keyspace, username)
 	}
 	conn, err := getSession(host, keyspace, username, password)
 	if err != nil {
@@ -82,7 +82,7 @@ func main() {
 		os.Exit(1)
 	}
 	if verbose {
-		fmt.Println("Query executed.")
+		fmt.Println("Query successful executed.")
 	}
 }
 
